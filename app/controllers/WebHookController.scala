@@ -1,6 +1,6 @@
 package controllers
 
-import dto.Response
+import dto.{FindDustDto, LineResponse}
 import javax.inject._
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -12,13 +12,18 @@ class WebHookController @Inject()(cc: ControllerComponents,
                                findDustService :FineDustService,
                                lineMessageService: LineMessageService) extends AbstractController(cc) {
 
-  implicit val responseFormat = Json.format[Response]
+  implicit val responseFormat = Json.format[LineResponse]
 
   def index = Action {
-    findDustService.getFineDust()
-    lineMessageService.sendBroadcast("Hello world")
-    val response = new Response(200, "hello world")
+    val nowFindDust = findDustService.getFineDust()
+    println(nowFindDust)
+    val response = makeLineMessageResponse(nowFindDust)
     Ok(Json.toJson(response))
   }
 
+  def makeLineMessageResponse(findDust : FindDustDto): LineResponse = {
+    val lineMessage = StringBuilder.newBuilder
+    lineMessage.append(findDust.toString + "\n")
+    LineResponse(200, lineMessage.toString())
+  }
 }
